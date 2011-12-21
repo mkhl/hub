@@ -1,3 +1,62 @@
+## master
+
+* ensure periods are allowed in repository names
+* fix am/apply commands if TMPDIR environment variable isn't set
+
+## 1.7.0 (2011-11-24)
+
+* lock down standalone script to system ruby
+* don't try to use command output pager on Windows
+* opt in for HTTPS: `git config hub.protocol https`
+* add `hub pull-request`
+* improve detecting upstream configuration ("tracking" branches)
+* introduce `hub --noop`
+* `hub apply` now downloads GitHub patches same as `hub am`
+* `hub create <name>` to explicitly name a repository
+* switch API communication to HTTPS
+* better handling of API HTTP exceptions
+* replace two dots (`sha1..sha2`) with three for ranges in `compare`
+* avoid ugly error & stack trace when git is not found on the system
+
+## 1.6.1 (2011-05-13)
+
+* `git push remote1,remote2` without branch name pushes the current branch
+* fix `browse` command for current repo with no tracking setup
+* preserve global flags to git such as `--bare` and `--git-dir=/some/path`
+* true cross-platform command detection and browser launcher
+
+## 1.6.0 (2011-03-24)
+
+* `am` strips extra path from pull reqs URLs such as "pull/42/files"
+* Fixed permissions on `hub(1)` when installing
+* gem renamed from `git-hub` to `hub`!
+
+## 1.5.1 (2011-03-18)
+
+* support git aliases
+* Bugfix: `browse/compare` for wiki repos
+* gracefully handle HTTP errors in `create` and `fork`
+* `hub am` supports Gist URLs
+* Bugfix: `clone` command doesn't get confused by mixed arguments
+
+## 1.5.0 (2010-12-28)
+
+* compensate for GitHub switch to HTTPS
+* `hub am`: cherry-pick pull request and commit URLs
+* support multiple URLs for a single remote
+* Bugfix: ensure that internal ruby methods can't pretend to be git commands
+* Bugfix: don't show help when `--exec-path` or `--html-path` flags are used
+* Support for `GITHUB_USER` and `GITHUB_TOKEN` env variables
+* Eliminate some ruby warnings
+
+## 1.4.1 (2010-08-08)
+## 1.4.0 (2010-08-08)
+
+* Added new `hub create` command
+* Added support for `remote set-url`
+* Bugfix: Don't try multiple git commands on a non-git dir when grabbing remote
+* Bugfix: Adding remotes when no remotes exist
+
 ## 1.3.2 (2010-07-24)
 
 * bugfix: cherry picking of commit URL

@@ -1,15 +1,8 @@
 require 'test/unit'
-
-begin
-  require 'redgreen'
-rescue LoadError
-end
-
-$LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
 require 'hub'
 require 'hub/standalone'
 
-# We're looking for `open` in the tests.
+# We're checking for `open` in our tests
 ENV['BROWSER'] = 'open'
 
 # Setup path with fake executables in case a test hits them
@@ -70,6 +63,17 @@ class Test::Unit::TestCase
     assert_equal expected, Hub(input).command, "$ git #{input}"
   end
 
+  def assert_commands(*expected)
+    input = expected.pop
+    assert_equal expected, Hub(input).commands
+  end
+
+  # Asserts that the command will be forwarded to git without changes
+  def assert_forwarded(input)
+    cmd = Hub(input)
+    assert !cmd.args.changed?, "arguments were not supposed to change: #{cmd.args.inspect}"
+  end
+
   # Asserts that `hub` will show a specific alias command for a
   # specific shell.
   #
@@ -96,5 +100,12 @@ class Test::Unit::TestCase
   def assert_not_includes(needle, haystack)
     assert !haystack.include?(needle),
       "didn't expect #{needle.inspect} in #{haystack.inspect}"
+  end
+
+  # Version of assert_equal tailored for big output
+  def assert_output(expected, command)
+    output = hub(command) { ENV['GIT'] = 'echo' }
+    assert expected == output,
+      "expected:\n#{expected}\ngot:\n#{output}"
   end
 end

@@ -9,13 +9,7 @@ module Hub
     
     def initialize(*args)
       @args = Args.new(args)
-
-      # Hack to emulate git-style
-      @args.unshift 'help' if @args.grep(/^[^-]|version/).empty?
-
-      # git commands can have dashes
-      cmd = @args[0].sub(/(\w)-/, '\1_')
-      Commands.send(cmd, @args) if Commands.respond_to?(cmd)
+      Commands.run(@args)
     end
 
     # Shortcut
@@ -23,42 +17,56 @@ module Hub
       new(*args).execute
     end
 
-    # Returns the current after callback, which (if set) is run after
-    # the target git command.
-    #
-    # See the `Hub::Args` class for more information on the `after`
-    # callback.
-    def after
-      args.after.to_s
-    end
-
-    # A string representation of the git command we would run if
-    # #execute were called.
+    # A string representation of the command that would run.
     def command
-      args.to_exec.join(' ')
-    end
-
-    # Runs the target git command with an optional callback. Replaces
-    # the current process.
-    def execute
-      if args.after?
-        execute_with_after_callback
+      if args.skip?
+        ''
       else
-        exec(*args.to_exec)
+        commands.join('; ')
       end
     end
 
-    # Runs the target git command then executes the `after` callback.
-    #
-    # See the `Hub::Args` class for more information on the `after`
-    # callback.
-    def execute_with_after_callback
-      after = args.after
-      if system(*args.to_exec)
-        after.respond_to?(:call) ? after.call : exec(after)
-        exit
-      else
-        exit 1
+    # An array of all commands as strings.
+    def commands
+      args.commands.map do |cmd|
+        if cmd.respond_to?(:join)
+          # a simplified `Shellwords.join` but it's OK since this is only used to inspect
+          cmd.map { |arg| arg = arg.to_s; (arg.index(' ') || arg.empty?) ? "'#{arg}'" : arg }.join(' ')
+        else
+          cmd.to_s
+        end
+      end
+    end
+
+    # Runs the target git command with an optional callback. Replaces
+    # the current process. 
+    # 
+    # If `args` is empty, this will skip calling the git command. This
+    # allows commands to print an error message and cancel their own
+    # execution if they don't make sense.
+    def execute
+      if args.noop?
+        puts commands
+      elsif not args.skip?
+        if args.chained?
+          execute_command_chain
+        else
+          exec(*args.to_exec)
+        end
+      end
+    end
+
+    # Runs multiple commands in succession; exits at first failure.
+    def execute_command_chain
+      commands = args.commands
+      commands.each_with_index do |cmd, i|
+        if cmd.respond_to?(:call) then cmd.call
+        elsif i == commands.length - 1
+          # last command in chain
+          exec(*cmd)
+        else
+          exit($?.exitstatus) unless system(*cmd)
+        end
       end
     end
   end

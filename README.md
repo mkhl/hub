@@ -3,7 +3,7 @@ hub: git + hub = github
 
 `hub` is a command line utility which adds GitHub knowledge to `git`.
 
-It can used on its own or as a `git` wrapper.
+It can be used on its own or as a `git` wrapper.
 
 Normal:
 
@@ -30,7 +30,7 @@ Install
 
 `hub` is most easily installed as a standalone script:
 
-    curl -s http://defunkt.github.com/hub/standalone > ~/bin/hub &&
+    curl http://defunkt.io/hub/standalone -sLo ~/bin/hub &&
     chmod 755 ~/bin/hub
 
 Assuming `~/bin/` is in your `$PATH`, you're ready to roll:
@@ -51,18 +51,14 @@ Assuming `~/bin/` is in your `$PATH`, you're ready to roll:
 
 Though not recommended, `hub` can also be installed as a RubyGem:
 
-    $ gem install git-hub
-
-Yes, the gem name is "git-hub".
+    $ gem install hub
 
 (It's not recommended for casual use because of the RubyGems startup
 time. See [this gist][speed] for information.)
 
 ### Standalone via RubyGems
 
-Yes, the gem name is still "git-hub":
-
-    $ gem install git-hub
+    $ gem install hub
     $ hub hub standalone > ~/bin/hub && chmod 755 ~/bin/hub
 
 This installs a standalone version which doesn't require RubyGems to
@@ -75,6 +71,21 @@ You can also install from source:
     $ git clone git://github.com/defunkt/hub.git
     $ cd hub
     $ rake install prefix=/usr/local
+
+### Help! It's Slow!
+
+Is your prompt slow? It may be hub.
+
+1. Check that it's **not** installed using RubyGems.
+2. Check that RUBYOPT isn't loading anything shady:
+
+       $ echo $RUBYOPT
+
+3. Check that your system Ruby is speedy:
+
+       $ time /usr/bin/env ruby -e0
+
+If #3 is slow, it may be your [GC settings][gc].
 
 
 Aliasing
@@ -103,7 +114,7 @@ The alias command can also be eval'd directly using the `-s` flag:
 Commands
 --------
 
-Assuming you've aliased `hub` to `git` the following commands now have
+Assuming you've aliased `hub` to `git`, the following commands now have
 superpowers:
 
 ### git clone
@@ -115,10 +126,7 @@ superpowers:
     > git clone git@github.com:schacon/ticgit.git
 
     $ git clone resque
-    > git clone git://github.com/YOUR_USER/resque.git
-
-    $ git clone -p resque
-    > git clone git@github.com:YOUR_USER/resque.git
+    > git clone git@github.com/YOUR_USER/resque.git
 
 ### git remote add
 
@@ -156,15 +164,63 @@ superpowers:
     > git fetch mislav
     > git cherry-pick SHA
 
+### git am, git apply
+
+    $ git am https://github.com/defunkt/hub/pull/55
+    > curl https://github.com/defunkt/hub/pull/55.patch -o /tmp/55.patch
+    > git am /tmp/55.patch
+
+    $ git am --ignore-whitespace https://github.com/davidbalbert/hub/commit/fdb9921
+    > curl https://github.com/davidbalbert/hub/commit/fdb9921.patch -o /tmp/fdb9921.patch
+    > git am --ignore-whitespace /tmp/fdb9921.patch
+
+    $ git apply https://gist.github.com/8da7fb575debd88c54cf
+    > curl https://gist.github.com/8da7fb575debd88c54cf.txt -o /tmp/gist-8da7fb575debd88c54cf.txt
+    > git apply /tmp/gist-8da7fb575debd88c54cf.txt
+
 ### git fork
 
     $ git fork
-    ... hardcore forking action ...
+    [ repo forked on GitHub ]
     > git remote add -f YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
 
-Forks the original repo on GitHub and adds the new remote under your
-username. It requires your GitHub token to be present; see "GitHub
-login" below for details.
+### git pull-request
+
+    # while on a topic branch called "feature":
+    $ git pull-request
+    [ opens text editor to edit title & body for the request ]
+    [ opened pull request on GitHub for "YOUR_USER:feature" ]
+
+    # explicit title, pull base & head:
+    $ git pull-request "I've implemented feature X" -b defunkt:master -h mislav:feature
+
+    $ git pull-request -i 123
+    [ attached pull request to issue #123 ]
+
+### git checkout
+
+    # $ git checkout https://github.com/defunkt/hub/pull/73
+    # > git remote add -f -t feature git://github:com/mislav/hub.git
+    # > git checkout -b mislav-feature mislav/feature
+
+    # $ git checkout https://github.com/defunkt/hub/pull/73 custom-branch-name
+
+### git create
+
+    $ git create
+    [ repo created on GitHub ]
+    > git remote add origin git@github.com:YOUR_USER/CURRENT_REPO.git
+
+    # with description:
+    $ git create -d 'It shall be mine, all mine!'
+
+    $ git create recipes
+    [ repo created on GitHub ]
+    > git remote add origin git@github.com:YOUR_USER/recipes.git
+
+    $ git create sinatra/recipes
+    [ repo created in GitHub organization ]
+    > git remote add origin git@github.com:sinatra/recipes.git
 
 ### git init
 
@@ -182,39 +238,39 @@ login" below for details.
 ### git browse
 
     $ git browse
-    > open http://github.com/CURRENT_REPO
+    > open https://github.com/YOUR_USER/CURRENT_REPO
+
+    $ git browse -- commit/SHA
+    > open https://github.com/YOUR_USER/CURRENT_REPO/commit/SHA
 
     $ git browse -- issues
-    > open http://github.com/CURRENT_REPO/issues
+    > open https://github.com/YOUR_USER/CURRENT_REPO/issues
 
     $ git browse schacon/ticgit
-    > open http://github.com/schacon/ticgit
-
-    $ git browse -p schacon/ticgit
     > open https://github.com/schacon/ticgit
 
+    $ git browse schacon/ticgit commit/SHA
+    > open https://github.com/schacon/ticgit/commit/SHA
+
     $ git browse resque
-    > open http://github.com/YOUR_USER/resque
+    > open https://github.com/YOUR_USER/resque
 
     $ git browse resque network
-    > open http://github.com/YOUR_USER/resque/network
-
-    $ git browse -p resque
-    > open https://github.com:YOUR_USER/resque
+    > open https://github.com/YOUR_USER/resque/network
 
 ### git compare
 
     $ git compare refactor
-    > open http://github.com/CURRENT_REPO/compare/refactor
+    > open https://github.com/CURRENT_REPO/compare/refactor
 
-    $ git compare 1.0...1.1
-    > open http://github.com/CURRENT_REPO/compare/1.0...1.1
+    $ git compare 1.0..1.1
+    > open https://github.com/CURRENT_REPO/compare/1.0...1.1
 
     $ git compare -u fix
-    > (http://github.com/CURRENT_REPO/compare/fix)
+    > (https://github.com/CURRENT_REPO/compare/fix)
 
     $ git compare other-user patch
-    > open http://github.com/other-user/REPO/compare/patch
+    > open https://github.com/other-user/REPO/compare/patch
 
 ### git submodule
 
@@ -240,7 +296,7 @@ GitHub Login
 ------------
 
 To get the most out of `hub`, you'll want to ensure your GitHub login
-is stored locally in your Git config.
+is stored locally in your Git config or environment variables.
 
 To test it run this:
 
@@ -251,29 +307,25 @@ If you see nothing, you need to set the config setting:
     $ git config --global github.user YOUR_USER
 
 For commands that require write access to GitHub (such as `fork`), you'll want to
-setup "github.token" as well. See [local GitHub config guide][2] for more information.
+setup "github.token" as well. See [GitHub config guide][2] for more information.
 
+If present, environment variables `GITHUB_USER` and `GITHUB_TOKEN` override the
+values of "github.user" and "github.token".
 
 Configuration
 -------------
 
-If you prefer `http://` clones to `git://` clones, you can set the
-`hub.http-clone` option to true using `git-config`.
+If you prefer using the HTTPS protocol for GitHub repositories instead of the git
+protocol for read and ssh for write, you can set "hub.protocol" to "https".
 
 For example:
 
     $ git clone defunkt/repl
     < git clone >
-    $ git config --global --bool hub.http-clone true
+    
+    $ git config --global hub.protocol https
     $ git clone defunkt/repl
-    < http clone >
-
-Or you can enter this manually into your `~/.gitconfig` file:
-
-    $ cat ~/.gitconfig
-    [hub]
-      http-clone = yes
-
+    < https clone >
 
 Prior Art
 ---------
@@ -282,49 +334,51 @@ These projects also aim to either improve git or make interacting with
 GitHub simpler:
 
 * [eg](http://www.gnome.org/~newren/eg/)
-* [github-gem](http://github.com/defunkt/github-gem)
-* [gh](http://github.com/visionmedia/gh)
+* [github-gem](https://github.com/defunkt/github-gem)
 
 
 Contributing
 ------------
 
-Once you've made your great commits:
+These instructions assume that you already have `hub` installed and that
+you've set it up so it wraps `git` (see "Aliasing").
 
-1. [Fork][0] hub
-2. Create a topic branch - `git checkout -b my_branch`
-3. Push to your branch - `git push origin my_branch`
-4. Create an [Issue][1] with a link to your branch
-5. That's it!
+1. Clone hub:  
+    `git clone defunkt/hub`
+2. Verify that existing tests pass (see "Development dependencies"):  
+    `rake test`
+3. Create a topic branch:  
+    `git checkout -b my_branch`
+4. Make your changes – it helps a lot if you write tests first
+5. Verify that tests still pass:  
+    `rake test`
+6. Fork hub on GitHub (adds a remote named "YOUR_USER"):  
+    `git fork`
+7. Push to your fork:  
+    `git push -u YOUR_USER my_branch`
+8. Open a pull request describing your changes:  
+    `git pull-request`
 
-### Development Gems
-You will need the following gems (and their dependencies) to
-contribute to `hub`:
+### Development dependencies
 
-* `rake` (`gem install rake`)
-* `kicker` (`gem install kicker`)
-* `turn` (`gem install turn`)
-* `mg` (`gem install mg`)
-* `ronn` (`gem install ronn`)
-* `webhelper` (`gem install webhelper`)
+You will need the following libraries for development:
+
+* [ronn](https://github.com/rtomayko/ronn) (building man pages)
+* [webmock](https://github.com/bblimke/webmock)
 
 Meta
 ----
 
-* Code: `git clone git://github.com/defunkt/hub.git`
-* Home: <http://github.com/defunkt/hub>
-* Bugs: <http://github.com/defunkt/hub/issues>
-* List: <http://groups.google.com/group/github>
-* Test: <http://runcoderun.com/defunkt/hub>
-* Gems: <http://gemcutter.org/gems/git-hub>
+* Home: <https://github.com/defunkt/hub>
+* Bugs: <https://github.com/defunkt/hub/issues>
+* Gem: <https://rubygems.org/gems/hub>
 
 
-Author
-------
+Authors
+-------
 
-Chris Wanstrath :: chris@ozmm.org :: @defunkt
+<https://github.com/defunkt/hub/contributors>
 
-[0]: http://help.github.com/forking/
-[1]: http://github.com/defunkt/hub/issues
 [speed]: http://gist.github.com/284823
-[2]: http://github.com/guides/local-github-config
+[2]: http://help.github.com/set-your-user-name-email-and-github-token/
+[gc]: https://twitter.com/brynary/status/49560668994674688
